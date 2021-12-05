@@ -31,5 +31,13 @@ for p in pair_dicts:
         right = max(p["ax"],p["bx"])
         for x in range(left,right+1):
             grid[x,p["ay"]] += 1
+    else:
+        left = min(p["ax"],p["bx"])
+        right = max(p["ax"],p["bx"])
+        top = min(p["ay"],p["by"])
+        bot = max(p["ay"],p["by"])
+        for x in range(left,right+1):
+            for y in range(top,bot+1):
+                grid[x,y] += 1
 
 print(len(np.where(grid>1)[0]))
