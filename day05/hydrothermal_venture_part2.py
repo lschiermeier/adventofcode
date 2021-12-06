@@ -3,7 +3,7 @@ from numpy.core.numeric import count_nonzero
 from rich.traceback import install
 import numpy as np
 
-with open('day5/input.txt', 'r') as fp:
+with open('day05/input.txt', 'r') as fp:
     lines = [x.strip() for x in fp.readlines()]
 
 pairs = [l.split(" -> ") for l in lines]
@@ -32,12 +32,11 @@ for p in pair_dicts:
         for x in range(left,right+1):
             grid[x,p["ay"]] += 1
     else:
-        left = min(p["ax"],p["bx"])
-        right = max(p["ax"],p["bx"])
-        top = min(p["ay"],p["by"])
-        bot = max(p["ay"],p["by"])
-        for x in range(left,right+1):
-            for y in range(top,bot+1):
-                grid[x,y] += 1
+        hor_dir = 1 if p["ax"] < p["bx"] else -1
+        vert_dir = 1 if p["ay"] < p["by"] else -1
+        length = abs(p["ax"]-p["bx"])+1
+        for i in range(0,length):
+            grid[p["ax"]+i*hor_dir,p["ay"]+i*vert_dir] += 1
+
 
 print(len(np.where(grid>1)[0]))

@@ -2,7 +2,7 @@
 
 inc_counter = 0
 part_two_counter = 0
-with open('day1/input.txt', 'r') as fp:
+with open('day01/input.txt', 'r') as fp:
     prevprevprevline = fp.readline()
     prevprevline = fp.readline()
     if(int(prevprevprevline) < int(prevprevline)):

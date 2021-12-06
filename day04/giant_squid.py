@@ -17,7 +17,7 @@ def hasWon(mask: np.array):
     return False
 
 
-with open('day4/input.txt', 'r') as fp:
+with open('day04/input.txt', 'r') as fp:
     lines = [x.strip() for x in fp.readlines()]
 
 draws = list(map(int,lines[0].split(",")))

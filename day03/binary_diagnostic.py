@@ -1,6 +1,6 @@
 import math
 
-with open('day3/input.txt', 'r') as fp:
+with open('day03/input.txt', 'r') as fp:
     lines = fp.readlines()
 
 line_num = len(lines)
