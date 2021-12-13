@@ -1,7 +1,6 @@
+#!python3.10
+
 # with open('day10/input.txt', 'r') as fp:
-from os import confstr_names
-
-
 with open('day10/testinput.txt', 'r') as fp:
     lines = [x.strip() for x in fp.readlines()]
 
