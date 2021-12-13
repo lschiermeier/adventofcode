@@ -1,0 +1,8 @@
+([]())
+
+( rest
+( [ pattern: ], rest := ) rest
+
+( ( pattern: ), rest
+
+True, None
