@@ -25,8 +25,8 @@ class Node():
             self.parent = None
             self.pathRisk = 0
             self.goal = args[0]
-        self.heurRisk = (abs(self.goal[0]-pos[0])+abs(self.goal[1]-pos[1]))
-        self.nodeRisk = self.pathRisk + self.heurRisk
+        self.heurRisk = ((self.goal[0]-pos[0])**2+(self.goal[1]-pos[1])**2)**0.5
+        self.nodeRisk = float(self.pathRisk) + self.heurRisk
 
     def getNodeRisk(some):
         return some.nodeRisk
@@ -59,13 +59,13 @@ def findPath(startPos, goalPos):
                 return n
             other = sorted([x for x in closedList + openList if x == n],key=Node.getNodeRisk)
             if not other == []:
-                if other[0].getNodeRisk() < n.getNodeRisk():
+                if other[0].getNodeRisk() <= n.getNodeRisk():
+                    # print(other[0].getNodeRisk(),n.getNodeRisk())
                     continue
             openList.append(n)
             openList.sort(key=Node.getNodeRisk)
         closedList.append(toExpand)
         closedList.sort(key=Node.getNodeRisk)
-        # print([(x.pos, x.getNodeRisk()) for x in closedList])
     print("Search Failed")
     return -1
 
@@ -81,5 +81,5 @@ while tempNode.parent != None:
     outMap[tempNode.pos] = 0
 
 
-# for line in outMap:
-#     print("".join(map(str,line)))
+for line in outMap:
+    print("".join(map(str,line)))
