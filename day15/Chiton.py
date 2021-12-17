@@ -14,7 +14,7 @@ max_xi = max(xis)
 max_yi = max(yis)
 
 class Node():
-    def __init__(self,pos,*args):
+    def __init__(self, pos,*args):
         self.pos = pos
         self.localRisk = height_map[pos]
         if isinstance(args[0],Node):
@@ -28,8 +28,6 @@ class Node():
         self.heurRisk = ((self.goal[0]-pos[0])**2+(self.goal[1]-pos[1])**2)**0.5
         self.nodeRisk = float(self.pathRisk) + self.heurRisk
 
-    def getNodeRisk(some):
-        return some.nodeRisk
     def getNodeRisk(self):
         return self.nodeRisk
     def __eq__(self, __o: object) -> bool:
