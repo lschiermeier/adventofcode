@@ -83,6 +83,6 @@ bigHeightMap = np.concatenate(lineHM, axis=1)
 max_xi = bigHeightMap.shape[0] - 1
 max_yi = bigHeightMap.shape[1] - 1
 start = (0,0)
-firstGoal = (max_xi,max_yi)
-bigGoalCost, parents = findPath(start,firstGoal,bigHeightMap)
+secondGoal = (max_xi,max_yi)
+bigGoalCost, parents = findPath(start,secondGoal,bigHeightMap)
 print(f"Result Part 2: {bigGoalCost}")
