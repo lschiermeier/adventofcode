@@ -1,83 +1,88 @@
 #!/usr/bin/python3.9
 import numpy as np
-from math import prod
 
 with open('day15/input.txt', 'r') as fp:
 # with open('day15/testinput.txt', 'r') as fp:
     lines = [x.strip() for x in fp.readlines()]
 
-height_map = np.asarray([list(map(int,list(l))) for l in lines]).transpose()
-
-xis = list(range(height_map.shape[0]))
-yis = list(range(height_map.shape[1]))
-max_xi = max(xis)
-max_yi = max(yis)
-
-class Node():
-    def __init__(self, pos,*args):
-        self.pos = pos
-        self.localRisk = height_map[pos]
-        if isinstance(args[0],Node):
-            self.parent = args[0]
-            self.pathRisk = self.parent.pathRisk + self.localRisk
-            self.goal = self.parent.goal
-        else:
-            self.parent = None
-            self.pathRisk = 0
-            self.goal = args[0]
-        self.heurRisk = ((self.goal[0]-pos[0])**2+(self.goal[1]-pos[1])**2)**0.5
-        self.nodeRisk = float(self.pathRisk) + self.heurRisk
-
-    def getNodeRisk(self):
-        return self.nodeRisk
-    def __eq__(self, __o: object) -> bool:
-        if isinstance(__o, Node):
-            return self.pos == __o.pos
-        return False
+heightMap = np.asarray([list(map(int,list(l))) for l in lines]).transpose()
 
 
-def findPath(startPos, goalPos):
-    start = [Node(startPos,goalPos)]
-    openList = sorted(start, key=Node.getNodeRisk)
-    closedList = sorted([],key=Node.getNodeRisk)
-    while len(openList) > 0:
-        toExpand = openList.pop(0)
-        xi,yi = toExpand.pos
-        newNodes = []
-        if xi < max_xi:
-            newNodes.append(Node((xi+1,yi),toExpand))
-        if xi > 0:
-            newNodes.append(Node((xi-1,yi),toExpand))
-        if yi < max_yi:
-            newNodes.append(Node((xi,yi+1),toExpand))
-        if yi > 0:
-            newNodes.append(Node((xi,yi-1),toExpand))
-        for n in newNodes:
-            if n.pos == goalPos:
-                return n
-            other = sorted([x for x in closedList + openList if x == n],key=Node.getNodeRisk)
-            if not other == []:
-                if other[0].getNodeRisk() <= n.getNodeRisk():
-                    # print(other[0].getNodeRisk(),n.getNodeRisk())
-                    continue
-            openList.append(n)
-            openList.sort(key=Node.getNodeRisk)
-        closedList.append(toExpand)
-        closedList.sort(key=Node.getNodeRisk)
-    print("Search Failed")
-    return -1
 
+def getNeighbors(pos, x_max, y_max):
+    xi,yi = pos
+    out = []
+    if xi + 1 <= x_max: out.append((xi+1,yi  ))
+    if xi - 1 >=     0: out.append((xi-1,yi  ))
+    if yi + 1 <= y_max: out.append((xi  ,yi+1))
+    if yi - 1 >=     0: out.append((xi  ,yi-1))
+    return out
 
-goalNode = findPath((0,0),(max_xi,max_yi))
-print(f"Result Part 1: {goalNode.pathRisk}")
-tempNode = goalNode
-outMap = height_map.copy()
-outMap[goalNode.pos] = 0
-outMap[0,0] = 0
-while tempNode.parent != None:
-    tempNode = tempNode.parent
-    outMap[tempNode.pos] = 0
+## hScore
+def calcHeur(c_pos, g_pos):
+    x,y = c_pos
+    xg, yg = g_pos
+    return ((xg - x)**2+(yg - y)**2)**0.5
 
+def findPath(start, goal, localRisks):
+    max_xi = localRisks.shape[0] - 1
+    max_yi = localRisks.shape[1] - 1
+    openSet = {start}
 
-for line in outMap:
-    print("".join(map(str,line)))
+    ## gScore
+    pathRisks = np.ones_like(localRisks)*999999
+    pathRisks[start] = 0
+
+    ## cameFrom
+    parentArray = np.zeros_like(localRisks, dtype=object)
+
+    ## fScore
+    nodeRisks = np.zeros_like(localRisks,dtype=float)
+    nodeRisks[start] = calcHeur(start, goal)
+    while len(openSet) > 0:
+        current = min(openSet,key=(lambda x: nodeRisks[x]))
+        openSet.remove(current)
+        if current == goal:
+            return pathRisks[current], parentArray
+        for nb in getNeighbors(current, max_xi, max_yi):
+            pathRisk = pathRisks[current] + localRisks[nb]
+            if pathRisk < pathRisks[nb]:
+                parentArray[nb] = current
+                pathRisks[nb] = pathRisk
+                nodeRisks[nb] = pathRisk + calcHeur(nb,goal)
+                openSet.add(nb)
+    else:
+        print("Search Failed")
+
+max_xi = heightMap.shape[0] - 1
+max_yi = heightMap.shape[1] - 1
+start = (0,0)
+firstGoal = (max_xi,max_yi)
+goalCost, parents = findPath(start,firstGoal,heightMap)
+# outMap = heightMap.copy()
+# outMap[0,0] = 0
+# tempPos = firstGoal
+# while tempPos != start:
+#     outMap[tempPos] = 0
+#     tempPos = parents[tempPos]
+# for line in outMap:
+#     print("".join(map(str,line)))
+print(f"Result Part 1: {goalCost}")
+
+adjHeightMaps = []
+for x in range(9):
+    newHM = heightMap + x
+    newHM = np.where(newHM > 9,newHM-9,newHM)
+    adjHeightMaps.append(newHM)
+
+lineHM = []
+for y in range(5):
+    lineHM.append(np.concatenate(adjHeightMaps[y:y+5],axis=0))
+bigHeightMap = np.concatenate(lineHM, axis=1)
+
+max_xi = bigHeightMap.shape[0] - 1
+max_yi = bigHeightMap.shape[1] - 1
+start = (0,0)
+firstGoal = (max_xi,max_yi)
+bigGoalCost, parents = findPath(start,firstGoal,bigHeightMap)
+print(f"Result Part 2: {bigGoalCost}")
