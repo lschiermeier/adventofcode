@@ -12,9 +12,9 @@ def getGoals(grid, poss, dir):
     y_len, x_len = grid.shape
     ys, xs = poss
     if dir == 1:
-        xs = np.fromiter((x+1 if x+1 < x_len else 0 for x in xs), np.int64)
+        xs = (xs+1)%x_len
     else:
-        ys = np.fromiter((y+1 if y+1 < y_len else 0 for y in ys), np.int64)
+        ys = (ys+1)%y_len
     return ys, xs
 
 def doMove(grid, herd):
@@ -23,8 +23,8 @@ def doMove(grid, herd):
     members = np.where(grid==herd)
     goals = getGoals(grid, members, herd)
     selector = grid[goals] == 0
-    new_locs = np.where(selector, goals, members)
-    new_grid[new_locs[0],new_locs[1]] = herd
+    new_locs = tuple(np.where(selector, goals, members))
+    new_grid[new_locs] = herd
     return new_grid, sum(selector)
 
 step = 0
