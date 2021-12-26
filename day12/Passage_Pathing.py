@@ -48,6 +48,17 @@ def expand(path:Path):
     ext_path_sel = list(map(Path.add_node, paths, next_Nodes))
     return [p for p,sel in zip(paths,ext_path_sel) if sel]
 
+def find_all_paths(with_repeats=False):
+    finished_paths = []
+    working_paths = [Path(web["start"], not with_repeats)]
+    while working_paths:
+        print(len(working_paths),len(finished_paths))
+        new_paths = [new_p for old_p in working_paths for new_p in expand(old_p)]
+        ended_sel = list(map(Path.is_ended, new_paths))
+        finished_paths += [p for p,sel in zip(new_paths, ended_sel) if sel]
+        working_paths = [p for p,sel in zip(new_paths, ended_sel) if not sel]
+    return len(finished_paths)
+
 web = {}
 for a, b in lines:
     if not a in web.keys():
@@ -56,24 +67,8 @@ for a, b in lines:
         web[b] = Node(b)
     web[a].add_edge(web[b])
 
-finished_paths = []
-working_paths = [Path(web["start"], True)]
-while working_paths:
-    print(len(working_paths),len(finished_paths))
-    new_paths = [new_p for old_p in working_paths for new_p in expand(old_p)]
-    ended_sel = list(map(Path.is_ended, new_paths))
-    finished_paths += [p for p,sel in zip(new_paths, ended_sel) if sel]
-    working_paths = [p for p,sel in zip(new_paths, ended_sel) if not sel]
 
-print(f"Result Part 1: {len(finished_paths)}")
 
-finished_paths = []
-working_paths = [Path(web["start"], False)]
-while working_paths:
-    print(len(working_paths),len(finished_paths))
-    new_paths = [new_p for old_p in working_paths for new_p in expand(old_p)]
-    ended_sel = list(map(Path.is_ended, new_paths))
-    finished_paths += [p for p,sel in zip(new_paths, ended_sel) if sel]
-    working_paths = [p for p,sel in zip(new_paths, ended_sel) if not sel]
+print(f"Result Part 1: {find_all_paths()}")
 
-print(f"Result Part 2: {len(finished_paths)}")
+print(f"Result Part 2: {find_all_paths(True)}")
