@@ -14,10 +14,7 @@ fn main() {
     };
 
     let mut s = String::new();
-    match file.read_to_string(&mut s) {
-        Err(why) => panic!("couldn't read {}: {}", display, why),
-        Ok(_) => print!("{} contains:\n{}", display, s),
-    }
+    file.read_to_string(&mut s).expect("Could not read file");
     let split = s.split("\n");
 
     let mut elves: Vec<Vec<i32>> = Vec::new();
@@ -38,4 +35,7 @@ fn main() {
         all_calors.push(calors)
     }
     println!("Result Day 1 Part 1: {}", all_calors.iter().max().expect("This should have failed before..."));
+
+    all_calors.sort_by(|a,b| b.cmp(a));
+    println!("Result Day 1 Part 2: {}", all_calors[0] + all_calors[1] + all_calors[2]);
 }
