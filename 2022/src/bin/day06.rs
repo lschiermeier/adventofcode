@@ -1,5 +1,3 @@
-use std::cmp::max;
-
 use aoc_2022::*;
 
 // Tuning Trouble
