@@ -2,6 +2,7 @@
 use aoc_2022::*;
 use lazy_static::lazy_static;
 use regex::Regex;
+use std::fmt::Debug;
 
 // Rope Bridge
 fn main() {
@@ -27,28 +28,48 @@ fn main() {
         let true_target: usize = get_last_number(lines.next().unwrap().unwrap().as_str());
         let false_target: usize = get_last_number(lines.next().unwrap().unwrap().as_str());
         monkeys.push(
-            Monkey { 
+            Monkey {
+            items: items,
                 items: items, 
+            items: items,
+            op: operation,
                 op: operation, 
+            op: operation,
+            test: test,
                 test: test, 
+            test: test,
+            true_target: true_target,
                 true_target: true_target, 
+            true_target: true_target,
+            false_target: false_target,
                 false_target: false_target, 
+            false_target: false_target,
+            inspections: 0
                 inspections: 0 
-            }
-        );
+            inspections: 0
+        }
+    );
         lines.next();
     }
+    let mut later_monkeys = monkeys.clone();
 
-    for round in 0..20 {
-        perform_inspections(&mut monkeys);
+    for _round in 0..20 {
+        perform_inspections(&mut monkeys, true);
         // println!("After Round {:?}: {:?}", round+1, monkeys);
     }
     monkeys.sort_by(|a, b| b.inspections.cmp(&a.inspections));
     let monkey_buisness = monkeys[0].inspections * monkeys[1].inspections;
     println!("Result Day 11 Part 1: {monkey_buisness}");
+
+    for _round in 0..10000 {
+        perform_inspections(&mut later_monkeys, false);
+    }
+    later_monkeys.sort_by(|a, b| b.inspections.cmp(&a.inspections));
+    let monkey_buisness = later_monkeys[0].inspections * later_monkeys[1].inspections;
+    println!("Result Day 11 Part 1: {monkey_buisness}");
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Monkey {
     items: Vec<usize>,
     op: Operation,
@@ -58,8 +79,8 @@ struct Monkey {
     inspections: usize
 }
 
-fn perform_inspections(monkeys: &mut Vec<Monkey>) {
-    
+fn perform_inspections(monkeys: &mut Vec<Monkey>, self_calming: bool) {
+    let prod_of_divs: usize = monkeys.iter().map(|x| x.test).product();
     for i in 0..monkeys.len() {
         let true_target;
         let mut new_true_items: Vec<usize> = Vec::new();
@@ -69,13 +90,17 @@ fn perform_inspections(monkeys: &mut Vec<Monkey>) {
         // println!(" {:?}", monkey);
         true_target = monkey.true_target;
         false_target = monkey.false_target;
-        for item in &monkey.items{
-            let new_item = match monkey.op {
+        for item in &monkey.items {
+            let mut new_item = match monkey.op {
                 Operation::Add(num) => item + num,
                 Operation::Mul(num) => item * num,
-                Operation::Sqr => item * item
+                Operation::Sqr => item * item,
             };
-            let new_item = new_item / 3;
+            if self_calming {
+                new_item = new_item / 3;
+            } else {
+                new_item = new_item % prod_of_divs;
+            }
             if new_item % monkey.test == 0 {
                 new_true_items.push(new_item);
             } else {
@@ -91,9 +116,7 @@ fn perform_inspections(monkeys: &mut Vec<Monkey>) {
     }
 }
 
-
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Operation {
     Mul(usize),
     Add(usize),
