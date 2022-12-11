@@ -30,22 +30,10 @@ fn main() {
         monkeys.push(
             Monkey {
             items: items,
-                items: items, 
-            items: items,
-            op: operation,
-                op: operation, 
             op: operation,
             test: test,
-                test: test, 
-            test: test,
-            true_target: true_target,
-                true_target: true_target, 
             true_target: true_target,
             false_target: false_target,
-                false_target: false_target, 
-            false_target: false_target,
-            inspections: 0
-                inspections: 0 
             inspections: 0
         }
     );
