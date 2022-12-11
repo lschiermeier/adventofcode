@@ -24,8 +24,10 @@ fn main() {
 
     let mut current_state = State { cycle: 1, reg_x: 1 };
     let mut state_history = vec![current_state];
+    let mut screen = ['.'; 40*6];
 
     for inst in instructions {
+        screen[usize::try_from(current_state.cycle-1).unwrap()] = get_pixel(current_state.cycle-1, current_state.reg_x);
         match inst {
             Instruction::Noop => {
                 current_state = State {
@@ -40,6 +42,7 @@ fn main() {
                     reg_x: current_state.reg_x
                 };
                 state_history.push(current_state);
+                screen[usize::try_from(current_state.cycle-1).unwrap()] = get_pixel(current_state.cycle-1, current_state.reg_x);
                 current_state = State {
                     cycle: current_state.cycle + 1,
                     reg_x: current_state.reg_x + num
@@ -56,6 +59,13 @@ fn main() {
         .sum();
 
     println!("Result Day 10 Part 1: {:?}", signal_strength);
+    print!("Result Day 10 Part 2: ");
+    for i in 0..240 {
+        if i % 40 == 0 {
+            println!();
+        }
+        print!("{}", screen[i]);
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -70,4 +80,9 @@ struct State {
     reg_x: i64,
 }
 
-impl State {}
+fn get_pixel(cycle: i64, reg_x: i64) -> char {
+    if (cycle % 40 - reg_x).abs() > 1 {
+        return '.';
+    }
+    '#'
+}
