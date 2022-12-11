@@ -54,7 +54,7 @@ fn main() {
     }
     later_monkeys.sort_by(|a, b| b.inspections.cmp(&a.inspections));
     let monkey_buisness = later_monkeys[0].inspections * later_monkeys[1].inspections;
-    println!("Result Day 11 Part 1: {monkey_buisness}");
+    println!("Result Day 11 Part 2: {monkey_buisness}");
 }
 
 #[derive(Debug, Clone)]
