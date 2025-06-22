@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if response.status().is_success() {
             let body = response.text().await?;
-            let dir = format!("../{}/inputs/{}/", year, year);
+            let dir = format!("../{}/inputs/", year);
             fs::create_dir_all(&dir)?;
             let path = format!("{}day{:02}.txt", dir, day);
             fs::write(&path, body)?;
