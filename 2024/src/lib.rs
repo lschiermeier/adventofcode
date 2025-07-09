@@ -17,10 +17,19 @@ where
     P: AsRef<Path>,
 {
     let lines = read_lines(filename);
-    let outvec: Vec<Vec<String>> = vec![];
+    let mut outvec: Vec<Vec<String>> = vec![];
     match lines {
         Err(err) => Err(err),
-        Ok(_) => {
+        Ok(lines) => {
+            let mut lvec: Vec<String> = vec![];
+            for line in lines {
+                if line.as_ref().expect("Line empty?").len() > 0 {
+                    for split in line.unwrap().split_whitespace() {
+                        lvec.push(split.to_owned());
+                    }
+                }
+            }
+            outvec.push(lvec);
             Ok(outvec)
         }
     }
@@ -28,7 +37,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::read_lines;
+    use super::*;
 
     #[test]
     fn it_works() {
@@ -37,10 +46,22 @@ mod tests {
 
     #[test]
     fn test_read_table() {
-        match read_lines("testinput/read_table.txt") {
+        let ref_table:Vec<Vec<&str>> = 
+        vec![
+            vec!["1","2","3","45","777"],
+            vec!["23"],
+            vec!["214"],
+            vec!["142"],
+            vec![],
+            vec!["2222", "44", "24"]
+        ];
+        match read_table("testinput/read_table.txt") {
             Err(_) => assert!(false),
             Ok(table) => {
-                assert!(true);
+                let mut ref_iter = ref_table.iter();
+                for line in table {
+                    let ref_line = ref_iter.next().unwrap().to_owned();
+                }
             }
         }
     }
