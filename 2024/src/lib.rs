@@ -64,7 +64,7 @@ mod tests {
             vec![],
             vec!["2222", "44", "24"]
         ];
-        match read_table("testinput/read_table.txt") {
+        match read_table("testinputs/read_table.txt") {
             Err(_) => assert!(false),
             Ok(table) => {
                 assert_eq!(ref_table, table);
