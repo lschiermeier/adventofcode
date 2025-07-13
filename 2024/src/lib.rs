@@ -22,13 +22,17 @@ where
         Err(err) => Err(err),
         Ok(lines) => {
             for line in lines {
-                let mut lvec: Vec<String> = vec![];
-                if line.as_ref().expect("Line empty?").len() > 0 {
-                    for split in line.unwrap().split_whitespace() {
-                        lvec.push(split.to_owned());
+                let line = line.unwrap();
+                outvec.push(
+                    if line.len() > 0 {
+                        line
+                        .split_whitespace()
+                        .map(|x| x.to_owned())
+                        .collect()
+                    } else {
+                        vec![]
                     }
-                }
-                outvec.push(lvec);
+                )
             }
             Ok(outvec)
         }
