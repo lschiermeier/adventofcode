@@ -21,28 +21,33 @@ where
     match lines {
         Err(err) => Err(err),
         Ok(lines) => {
-            let mut lvec: Vec<String> = vec![];
             for line in lines {
+                let mut lvec: Vec<String> = vec![];
                 if line.as_ref().expect("Line empty?").len() > 0 {
                     for split in line.unwrap().split_whitespace() {
                         lvec.push(split.to_owned());
                     }
                 }
+                outvec.push(lvec);
             }
-            outvec.push(lvec);
             Ok(outvec)
         }
+    }
+}
+
+pub fn gen_input_path(day_rs_name: &str, test_mode: bool) -> Option<&Path> {
+    if let length = day_rs_name.len() {
+        
+    }
+    match day_rs_name.to() {
+         => None,
+        _ => panic!()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn it_works() {
-        assert_eq!(4, 4);
-    }
 
     #[test]
     fn test_read_table() {
@@ -58,12 +63,14 @@ mod tests {
         match read_table("testinput/read_table.txt") {
             Err(_) => assert!(false),
             Ok(table) => {
-                let mut ref_iter = ref_table.iter();
-                for line in table {
-                    let ref_line = ref_iter.next().unwrap().to_owned();
-                }
+                assert_eq!(ref_table, table);
             }
         }
+    }
+    
+    #[test]
+    fn test_gen_input_path() {
+        let path = gen_input_path("day10.rs", true);
     }
 }
 
