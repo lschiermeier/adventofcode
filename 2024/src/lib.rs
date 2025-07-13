@@ -1,8 +1,9 @@
-use core::panic;
+use core::{fmt, panic};
 use regex::{self, Regex};
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+use std::str::FromStr;
 
 // The output is wrapped in a Result to allow matching on errors
 // Returns an Iterator to the Reader of the lines of the file.
@@ -50,6 +51,21 @@ pub fn gen_input_path(day_rs_name: &str, test_mode: bool) -> String {
     }
 }
 
+pub fn parse_table<T>(table: Vec<Vec<String>>) -> Vec<Vec<T>>
+where
+    T: FromStr,
+    <T as FromStr>::Err: fmt::Debug,
+{
+    table
+        .iter()
+        .map(|x| {
+            x.iter()
+                .map(|y| y.parse::<T>().expect("Could not parse table"))
+                .collect()
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -80,3 +96,23 @@ mod tests {
         assert_eq!(path, "inputs/day10.txt");
     }
 }
+
+    #[test]
+    fn test_parse_table() {
+        let ref_table: Vec<Vec<i64>> = vec![
+            vec![1, 2, 3, 45, 777],
+            vec![23],
+            vec![214],
+            vec![142],
+            vec![],
+            vec![2222, 44, 24],
+        ];
+
+        match read_table("testinputs/read_table.txt") {
+            Err(_) => assert!(false),
+            Ok(table) => {
+                let nums_table = parse_table::<i64>(table);
+                assert_eq!(nums_table, ref_table);
+            }
+        }
+    }
