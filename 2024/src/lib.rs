@@ -1,3 +1,5 @@
+use core::panic;
+use regex::{self, Regex};
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
@@ -23,29 +25,28 @@ where
         Ok(lines) => {
             for line in lines {
                 let line = line.unwrap();
-                outvec.push(
-                    if line.len() > 0 {
-                        line
-                        .split_whitespace()
-                        .map(|x| x.to_owned())
-                        .collect()
-                    } else {
-                        vec![]
-                    }
-                )
+                outvec.push(if line.len() > 0 {
+                    line.split_whitespace().map(|x| x.to_owned()).collect()
+                } else {
+                    vec![]
+                })
             }
             Ok(outvec)
         }
     }
 }
 
-pub fn gen_input_path(day_rs_name: &str, test_mode: bool) -> Option<&Path> {
-    if let length = day_rs_name.len() {
-        
-    }
-    match day_rs_name.to() {
-         => None,
-        _ => panic!()
+pub fn gen_input_path(day_rs_name: &str, test_mode: bool) -> String {
+    let rx = Regex::new(r"day(\d\d)").unwrap();
+    let my_match = rx.find(day_rs_name);
+    let day = match my_match {
+        None => panic!("gen_input_path failed to run regex: input was: {day_rs_name}"),
+        Some(x) => x.as_str(),
+    };
+    if test_mode {
+        ["inputs/", day, "_test.txt"].concat()
+    } else {
+        ["inputs/", day, ".txt"].concat()
     }
 }
 
@@ -55,14 +56,13 @@ mod tests {
 
     #[test]
     fn test_read_table() {
-        let ref_table:Vec<Vec<&str>> = 
-        vec![
-            vec!["1","2","3","45","777"],
+        let ref_table: Vec<Vec<&str>> = vec![
+            vec!["1", "2", "3", "45", "777"],
             vec!["23"],
             vec!["214"],
             vec!["142"],
             vec![],
-            vec!["2222", "44", "24"]
+            vec!["2222", "44", "24"],
         ];
         match read_table("testinputs/read_table.txt") {
             Err(_) => assert!(false),
@@ -71,10 +71,12 @@ mod tests {
             }
         }
     }
-    
+
     #[test]
     fn test_gen_input_path() {
         let path = gen_input_path("day10.rs", true);
+        assert_eq!(path, "inputs/day10_test.txt");
+        let path = gen_input_path("day10.rs", false);
+        assert_eq!(path, "inputs/day10.txt");
     }
 }
-
