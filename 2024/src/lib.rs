@@ -37,6 +37,41 @@ where
     }
 }
 
+pub fn read_strings<P>(filename: P) -> io::Result<Vec<String>>
+where
+    P: AsRef<Path>,
+{
+    let lines = read_lines(filename);
+    let mut out_vec: Vec<String> = vec![];
+    match lines {
+        Err(err) => Err(err),
+        Ok(lines) => {
+            for line in lines {
+                out_vec.push(line.unwrap());
+            }
+            Ok(out_vec)
+        }
+    }
+}
+
+pub fn read_ascii<P>(filename: P) -> io::Result<Vec<Vec<u8>>>
+where
+    P: AsRef<Path>,
+{
+    let lines = read_lines(filename);
+    let mut out_vec: Vec<Vec<u8>> = vec![];
+    match lines {
+        Err(err) => Err(err),
+        Ok(lines) => {
+            for line in lines {
+                out_vec.push(line.unwrap().as_bytes().to_owned());
+            }
+            Ok(out_vec)
+        }
+    }
+}
+
+
 pub fn gen_input_path(day_rs_name: &str, test_mode: bool) -> String {
     let rx = Regex::new(r"day(\d\d)").unwrap();
     let my_match = rx.find(day_rs_name);
@@ -97,22 +132,22 @@ mod tests {
     }
 }
 
-    #[test]
-    fn test_parse_table() {
-        let ref_table: Vec<Vec<i64>> = vec![
-            vec![1, 2, 3, 45, 777],
-            vec![23],
-            vec![214],
-            vec![142],
-            vec![],
-            vec![2222, 44, 24],
-        ];
+#[test]
+fn test_parse_table() {
+    let ref_table: Vec<Vec<i64>> = vec![
+        vec![1, 2, 3, 45, 777],
+        vec![23],
+        vec![214],
+        vec![142],
+        vec![],
+        vec![2222, 44, 24],
+    ];
 
-        match read_table("testinputs/read_table.txt") {
-            Err(_) => assert!(false),
-            Ok(table) => {
-                let nums_table = parse_table::<i64>(table);
-                assert_eq!(nums_table, ref_table);
-            }
+    match read_table("testinputs/read_table.txt") {
+        Err(_) => assert!(false),
+        Ok(table) => {
+            let nums_table = parse_table::<i64>(table);
+            assert_eq!(nums_table, ref_table);
         }
     }
+}
