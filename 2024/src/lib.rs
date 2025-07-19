@@ -226,3 +226,37 @@ impl Direction {
         }
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct Map2D<T>
+where
+    T: Copy,
+{
+    block: Vec<Vec<T>>,
+    outer_bound: Offset,
+}
+
+impl<T> Map2D<T>
+where
+    T: Copy,
+{
+    pub fn new(block: Vec<Vec<T>>) -> Self {
+        Map2D {
+            outer_bound: Offset {
+                x: block.get(0).expect("Empty Sub Vec given to Map2D.").len() as i64,
+                y: block.len() as i64,
+            },
+            block: block,
+        }
+    }
+
+    pub fn get(self, point: Offset) -> Option<T> {
+        if point.is_in_bounds(self.outer_bound) {
+            Some(self.block[point.y as usize][point.x as usize])
+        } else {
+            None
+        }
+    }
+
+    
+}
