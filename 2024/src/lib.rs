@@ -2,8 +2,12 @@ use core::{fmt, panic};
 use regex::{self, Regex};
 use std::fs::File;
 use std::io::{self, BufRead};
+use std::ops;
 use std::path::Path;
+use std::slice::Iter;
 use std::str::FromStr;
+
+use self::Direction::*;
 
 // The output is wrapped in a Result to allow matching on errors
 // Returns an Iterator to the Reader of the lines of the file.
@@ -70,7 +74,6 @@ where
         }
     }
 }
-
 
 pub fn gen_input_path(day_rs_name: &str, test_mode: bool) -> String {
     let rx = Regex::new(r"day(\d\d)").unwrap();
@@ -148,6 +151,78 @@ fn test_parse_table() {
         Ok(table) => {
             let nums_table = parse_table::<i64>(table);
             assert_eq!(nums_table, ref_table);
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Offset {
+    pub x: i64,
+    pub y: i64,
+}
+
+impl ops::Add<Offset> for Offset {
+    type Output = Offset;
+    fn add(self, _rhs: Offset) -> Offset {
+        Offset {
+            x: self.x + _rhs.x,
+            y: self.y + _rhs.y,
+        }
+    }
+}
+
+impl Offset {
+    pub fn is_in_bounds(self, outer_bound: Offset) -> bool {
+        match (self.x, self.y) {
+            (..=-1, _) => false,
+            (_, ..=-1) => false,
+            (x, y) => x < outer_bound.x && y < outer_bound.y,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum Direction {
+    North,
+    Northwest,
+    West,
+    Southwest,
+    South,
+    Southeast,
+    East,
+    Northeast,
+}
+
+impl Direction {
+    pub fn iterator() -> Iter<'static, Direction> {
+        static DIRECTIONS: [Direction; 8] = [
+            North, Northwest, West, Southwest, South, Southeast, East, Northeast,
+        ];
+        DIRECTIONS.iter()
+    }
+    pub fn as_offset(self: &Direction) -> Offset {
+        match self {
+            North => Offset { x: 0, y: -1 },
+            Northwest => Offset { x: 1, y: -1 },
+            West => Offset { x: 1, y: 0 },
+            Southwest => Offset { x: 1, y: 1 },
+            South => Offset { x: 0, y: 1 },
+            Southeast => Offset { x: -1, y: 1 },
+            East => Offset { x: -1, y: 0 },
+            Northeast => Offset { x: -1, y: -1 },
+        }
+    }
+
+    pub fn get_opposite(self: &Direction) -> Direction {
+        match self {
+            North => South,
+            Northwest => Southeast,
+            West => East,
+            Southwest => Northeast,
+            South => North,
+            Southeast => Northwest,
+            East => West,
+            Northeast => Southwest,
         }
     }
 }
