@@ -13,7 +13,6 @@ fn main() {
     let lines = read_strings(input_path).expect("File could not be opened.");
 
     let (sum_p1, sum_p2) = solve(&lines);
-    // let sum_p2 = None;
     println!("{src_name} - Result 1: {sum_p1}");
     println!("{src_name} - Result 2: {sum_p2}");
 }
