@@ -2,12 +2,8 @@ use core::{fmt, panic};
 use regex::{self, Regex};
 use std::fs::File;
 use std::io::{self, BufRead};
-use std::ops;
 use std::path::Path;
-use std::slice::Iter;
 use std::str::FromStr;
-
-use self::Direction::*;
 
 // The output is wrapped in a Result to allow matching on errors
 // Returns an Iterator to the Reader of the lines of the file.
@@ -118,7 +114,7 @@ mod tests {
             vec![],
             vec!["2222", "44", "24"],
         ];
-        match read_table("testinputs/read_table.txt") {
+        match read_table("../testinputs/read_table.txt") {
             Err(_) => assert!(false),
             Ok(table) => {
                 assert_eq!(ref_table, table);
@@ -146,117 +142,11 @@ fn test_parse_table() {
         vec![2222, 44, 24],
     ];
 
-    match read_table("../testinputs/read_table.txt") {
+    match read_table("testinputs/read_table.txt") {
         Err(_) => assert!(false),
         Ok(table) => {
             let nums_table = parse_table::<i64>(table);
             assert_eq!(nums_table, ref_table);
         }
     }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct Offset {
-    pub x: i64,
-    pub y: i64,
-}
-
-impl ops::Add<Offset> for Offset {
-    type Output = Offset;
-    fn add(self, _rhs: Offset) -> Offset {
-        Offset {
-            x: self.x + _rhs.x,
-            y: self.y + _rhs.y,
-        }
-    }
-}
-
-impl Offset {
-    pub fn is_in_bounds(self, outer_bound: Offset) -> bool {
-        match (self.x, self.y) {
-            (..=-1, _) => false,
-            (_, ..=-1) => false,
-            (x, y) => x < outer_bound.x && y < outer_bound.y,
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub enum Direction {
-    North,
-    Northwest,
-    West,
-    Southwest,
-    South,
-    Southeast,
-    East,
-    Northeast,
-}
-
-impl Direction {
-    pub fn iterator() -> Iter<'static, Direction> {
-        static DIRECTIONS: [Direction; 8] = [
-            North, Northwest, West, Southwest, South, Southeast, East, Northeast,
-        ];
-        DIRECTIONS.iter()
-    }
-    pub fn as_offset(self: &Direction) -> Offset {
-        match self {
-            North => Offset { x: 0, y: -1 },
-            Northwest => Offset { x: 1, y: -1 },
-            West => Offset { x: 1, y: 0 },
-            Southwest => Offset { x: 1, y: 1 },
-            South => Offset { x: 0, y: 1 },
-            Southeast => Offset { x: -1, y: 1 },
-            East => Offset { x: -1, y: 0 },
-            Northeast => Offset { x: -1, y: -1 },
-        }
-    }
-
-    pub fn get_opposite(self: &Direction) -> Direction {
-        match self {
-            North => South,
-            Northwest => Southeast,
-            West => East,
-            Southwest => Northeast,
-            South => North,
-            Southeast => Northwest,
-            East => West,
-            Northeast => Southwest,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct Map2D<T>
-where
-    T: Copy,
-{
-    block: Vec<Vec<T>>,
-    outer_bound: Offset,
-}
-
-impl<T> Map2D<T>
-where
-    T: Copy,
-{
-    pub fn new(block: Vec<Vec<T>>) -> Self {
-        Map2D {
-            outer_bound: Offset {
-                x: block.get(0).expect("Empty Sub Vec given to Map2D.").len() as i64,
-                y: block.len() as i64,
-            },
-            block: block,
-        }
-    }
-
-    pub fn get(self, point: Offset) -> Option<T> {
-        if point.is_in_bounds(self.outer_bound) {
-            Some(self.block[point.y as usize][point.x as usize])
-        } else {
-            None
-        }
-    }
-
-    
 }
