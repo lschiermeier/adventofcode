@@ -1,0 +1,26 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cargo: build",
+            "type": "shell",
+            "command": "cargo",
+            "args": ["build"],
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": ["$rustc"],
+            "presentation": { "reveal": "always", "panel": "shared" },
+            "options": { "cwd": "${workspaceFolder}/${relativeFileDirname}/../.." }
+        },
+        {
+            "label": "cargo: watch build",
+            "type": "shell",
+            "command": "cargo",
+            "args": ["watch", "-x", "build"],
+            "isBackground": true,
+            "problemMatcher": ["$rustc"],
+            "presentation": { "reveal": "silent", "panel": "dedicated" },
+            "detail": "Requires `cargo-watch` (install with `cargo install cargo-watch`).",
+            "options": { "cwd": "${workspaceFolder}/${relativeFileDirname}/../.." }
+        }
+    ]
+}

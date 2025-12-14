@@ -7,10 +7,11 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Launch",
+            "name": "Launch and Build Rust",
             "program": "${workspaceFolder}/${relativeFileDirname}/../../target/debug/${fileBasenameNoExtension}",
-            "args": [],
+            // "args": ["test"],
             "cwd": "${workspaceFolder}/${relativeFileDirname}/../..",
+            "preLaunchTask": "cargo: build",
             "cargo": {
                 "args": [
                     "build",
@@ -20,7 +21,8 @@
                     "kind": "bin"
                 },
                 "cwd": "${workspaceFolder}/${relativeFileDirname}"
-            }
+            },
+            "env": {"RUST_LOG":"Debug"}
         }
 
     ]
