@@ -1,9 +1,14 @@
 use core::{fmt, panic};
 use regex::{self, Regex};
+use std::fmt::Display;
 use std::fs::File;
 use std::io::{self, BufRead};
+use std::ops;
 use std::path::Path;
+use std::slice::Iter;
 use std::str::FromStr;
+
+use self::Direction::*;
 
 // The output is wrapped in a Result to allow matching on errors
 // Returns an Iterator to the Reader of the lines of the file.
@@ -148,5 +153,172 @@ fn test_parse_table() {
             let nums_table = parse_table::<i64>(table);
             assert_eq!(nums_table, ref_table);
         }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Point {
+    pub x: i64,
+    pub y: i64,
+}
+
+impl ops::Add<Point> for Point {
+    type Output = Point;
+    fn add(self, _rhs: Point) -> Point {
+        Point {
+            x: self.x + _rhs.x,
+            y: self.y + _rhs.y,
+        }
+    }
+}
+
+impl Point {
+    pub fn is_in_bounds(self, outer_bound: Point) -> bool {
+        match (self.x, self.y) {
+            (..=-1, _) => false,
+            (_, ..=-1) => false,
+            (x, y) => x < outer_bound.x && y < outer_bound.y,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum Direction {
+    North,
+    Northwest,
+    West,
+    Southwest,
+    South,
+    Southeast,
+    East,
+    Northeast,
+}
+
+impl Direction {
+    pub fn iterator() -> Iter<'static, Direction> {
+        static DIRECTIONS: [Direction; 8] = [
+            North, Northwest, West, Southwest, South, Southeast, East, Northeast,
+        ];
+        DIRECTIONS.iter()
+    }
+    pub fn as_offset(self: &Direction) -> Point {
+        match self {
+            North => Point { x: 0, y: -1 },
+            Northwest => Point { x: 1, y: -1 },
+            West => Point { x: 1, y: 0 },
+            Southwest => Point { x: 1, y: 1 },
+            South => Point { x: 0, y: 1 },
+            Southeast => Point { x: -1, y: 1 },
+            East => Point { x: -1, y: 0 },
+            Northeast => Point { x: -1, y: -1 },
+        }
+    }
+
+    pub fn get_opposite(self: &Direction) -> Direction {
+        match self {
+            North => South,
+            Northwest => Southeast,
+            West => East,
+            Southwest => Northeast,
+            South => North,
+            Southeast => Northwest,
+            East => West,
+            Northeast => Southwest,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Map2D<T>
+where
+    T: Copy,
+{
+    block: Vec<Vec<T>>,
+    pub outer_bound: Point,
+}
+
+impl<T> Map2D<T>
+where
+    T: Copy,
+{
+    pub fn new(block: Vec<Vec<T>>) -> Self {
+        Map2D {
+            outer_bound: Point {
+                x: block.get(0).expect("Empty Sub Vec given to Map2D.").len() as i64,
+                y: block.len() as i64,
+            },
+            block: block,
+        }
+    }
+
+    pub fn from<F>(elems: Vec<Vec<F>>) -> Self
+    where
+        F: Into<T>,
+    {
+        let block: Vec<Vec<T>> = elems
+            .into_iter()
+            .map(|row| row.into_iter().map(|v| v.into()).collect())
+            .collect();
+        Map2D::new(block)
+    }
+
+    pub fn from_elem_with_bound(outer_bound: Point, elem: T) -> Self {
+        let mut block: Vec<Vec<T>> = vec![];
+        for _ in 0..outer_bound.y {
+            let mut row: Vec<T> = vec![];
+            for _ in 0..outer_bound.x {
+                row.push(elem);
+            }
+            block.push(row);
+        }
+        Map2D::new(block)
+    }
+
+    pub fn get(&self, point: Point) -> Option<T> {
+        if point.is_in_bounds(self.outer_bound) {
+            Some(self.block[point.y as usize][point.x as usize])
+        } else {
+            None
+        }
+    }
+
+    pub fn set(&mut self, point: Point, value: T) -> Result<(), String> {
+        if point.is_in_bounds(self.outer_bound) {
+            self.block[point.y as usize][point.x as usize] = value;
+            Ok(())
+        } else {
+            Err("Point out of bounds".into())
+        }
+    }
+
+    pub fn iter_elem(&self) -> impl Iterator<Item = (T, Point)> + '_ {
+        self.block.iter().enumerate().flat_map(|(y, row)| {
+            row.iter().enumerate().map(move |(x, &val)| {
+                (
+                    val,
+                    Point {
+                        x: x as i64,
+                        y: y as i64,
+                    },
+                )
+            })
+        })
+    }
+
+    
+}
+
+impl<T> std::fmt::Display for Map2D<T>
+where
+    T: Display,
+    T: Copy,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.block.iter().for_each(|y| {
+            y.iter()
+                .for_each(|x| write!(f, "{}", x).expect("Failed to write Map2D"));
+            write!(f, "\n").unwrap();
+        });
+        Ok(())
     }
 }
