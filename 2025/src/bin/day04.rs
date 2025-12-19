@@ -38,7 +38,7 @@ fn main() {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
-enum Tile {
+pub enum Tile {
     Empty,
     Roll(bool),
 }

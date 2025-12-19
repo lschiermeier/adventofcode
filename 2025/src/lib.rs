@@ -20,7 +20,7 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-pub fn read_table<P>(filename: P) -> io::Result<Vec<Vec<String>>>
+pub fn read_table<P>(filename: P, delim: char) -> io::Result<Vec<Vec<String>>>
 where
     P: AsRef<Path>,
 {
@@ -30,9 +30,9 @@ where
         Err(err) => Err(err),
         Ok(lines) => {
             for line in lines {
-                let line = line.unwrap();
+                let line: String = line.unwrap();
                 outvec.push(if line.len() > 0 {
-                    line.split_whitespace().map(|x| x.to_owned()).collect()
+                    line.split(delim).map(|x| x.to_owned()).collect()
                 } else {
                     vec![]
                 })
@@ -119,7 +119,7 @@ mod tests {
             vec![],
             vec!["2222", "44", "24"],
         ];
-        match read_table("../testinputs/read_table.txt") {
+        match read_table("../testinputs/read_table.txt", ' ') {
             Err(_) => assert!(false),
             Ok(table) => {
                 assert_eq!(ref_table, table);
@@ -147,7 +147,7 @@ fn test_parse_table() {
         vec![2222, 44, 24],
     ];
 
-    match read_table("testinputs/read_table.txt") {
+    match read_table("../testinputs/read_table.txt", ' ') {
         Err(_) => assert!(false),
         Ok(table) => {
             let nums_table = parse_table::<i64>(table);
@@ -304,8 +304,6 @@ where
             })
         })
     }
-
-    
 }
 
 impl<T> std::fmt::Display for Map2D<T>
