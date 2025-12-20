@@ -1,11 +1,8 @@
-use std::{cmp::Ordering, collections::btree_map::Range, ops::RangeInclusive};
-
 use aoc_2025::*;
-use itertools::{Itertools, MinMaxResult, max};
+use itertools::{Itertools, MinMaxResult};
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
-// #[allow(unused)]
 
 fn main() {
     pretty_env_logger::init();

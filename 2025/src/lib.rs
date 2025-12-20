@@ -1,4 +1,5 @@
 use core::{fmt, panic};
+use itertools::{Itertools};
 use regex::{self, Regex};
 use std::fmt::Display;
 use std::fs::File;
@@ -32,7 +33,10 @@ where
             for line in lines {
                 let line: String = line.unwrap();
                 outvec.push(if line.len() > 0 {
-                    line.split(delim).map(|x| x.to_owned()).collect()
+                    line.split(delim)
+                        .filter(|x| x.len() > 0)
+                        .map(|x| x.to_owned())
+                        .collect()
                 } else {
                     vec![]
                 })
@@ -70,6 +74,23 @@ where
         Ok(lines) => {
             for line in lines {
                 out_vec.push(line.unwrap().as_bytes().to_owned());
+            }
+            Ok(out_vec)
+        }
+    }
+}
+
+pub fn read_chars<P>(filename: P) -> io::Result<Vec<Vec<char>>>
+where
+    P: AsRef<Path>,
+{
+    let lines = read_lines(filename);
+    let mut out_vec: Vec<Vec<char>> = vec![];
+    match lines {
+        Err(err) => Err(err),
+        Ok(lines) => {
+            for line in lines {
+                out_vec.push(line.unwrap().chars().collect());
             }
             Ok(out_vec)
         }
@@ -319,4 +340,24 @@ where
         });
         Ok(())
     }
+}
+
+// Transposes a 2D table, expects rectangular
+pub fn transpose<T>(table: Vec<Vec<T>>) -> Option<Vec<Vec<T>>>
+where
+    T: Copy,
+{
+    if !table.iter().map(|c| c.len()).all_equal() {
+        return None;
+    }
+    let mut row_iters = table.iter().map(|x| x.iter()).collect_vec();
+    let mut out_table: Vec<Vec<T>> = vec![];
+    for _ in 0..table.first()?.len() {
+        let col = row_iters
+            .iter_mut()
+            .map(|x| x.next().copied().unwrap())
+            .collect();
+        out_table.push(col);
+    }
+    Some(out_table)
 }
