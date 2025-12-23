@@ -1,5 +1,6 @@
 use core::{fmt, panic};
-use itertools::{Itertools};
+use itertools::Itertools;
+use log::warn;
 use regex::{self, Regex};
 use std::fmt::Display;
 use std::fs::File;
@@ -120,9 +121,16 @@ where
         .iter()
         .map(|x| {
             x.iter()
-                .map(|y| y.parse::<T>().expect("Could not parse table"))
+                .map(|y| y.parse::<T>().expect("Could not parse string table"))
                 .collect()
         })
+        .collect()
+}
+
+pub fn parse_chars(table: Vec<Vec<char>>) -> Vec<Vec<u32>> {
+    table
+        .iter()
+        .map(|x| x.iter().filter_map(|y| y.to_digit(10)).collect())
         .collect()
 }
 
@@ -348,6 +356,7 @@ where
     T: Copy,
 {
     if !table.iter().map(|c| c.len()).all_equal() {
+        warn!("Table was not rectangular.");
         return None;
     }
     let mut row_iters = table.iter().map(|x| x.iter()).collect_vec();
@@ -360,4 +369,27 @@ where
         out_table.push(col);
     }
     Some(out_table)
+}
+
+#[test]
+pub fn test_transpose() {
+    let in_table: Vec<Vec<i64>> = vec![vec![1, 2, 3, 45, 777], vec![23, 1, 2, 3, 4]];
+    let ref_table: Vec<Vec<i64>> = vec![
+        vec![1, 23],
+        vec![2, 1],
+        vec![3, 2],
+        vec![45, 3],
+        vec![777, 4],
+    ];
+    if let Some(out_table) = transpose(in_table) {
+        assert_eq!(out_table, ref_table, "Transpose didn't match ref.");
+    } else {
+        assert!(false, "Transpose failed unexpectedly");
+    };
+    let wrong_table = vec![vec!["blubb"], vec!["blah", "blah"]];
+    assert_eq!(
+        None,
+        transpose(wrong_table),
+        "Transpose didn't produce None."
+    );
 }

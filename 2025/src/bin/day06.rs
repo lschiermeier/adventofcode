@@ -2,7 +2,7 @@ use core::num;
 use std::{iter, ops, thread::yield_now, vec};
 
 use aoc_2025::*;
-use itertools::{Itertools, Zip, rev};
+use itertools::{Itertools, WhileSome, Zip, rev};
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
@@ -24,19 +24,10 @@ fn main() {
             .iter_mut()
             .map(|x| x.next().unwrap().to_owned())
             .collect_vec();
-        let calc_func = match operation.as_str() {
-            "+" => |x: u64, y: u64| x + y,
-            "*" => |x: u64, y: u64| x * y,
-            _ => panic!("Unknown operation in calculation"),
-        };
-        let init = match operation.as_str() {
-            "+" => 0,
-            "*" => 1,
-            _ => panic!("Unknown operation in calculation"),
-        };
+        let (init, calc_func) = get_calc_func(operation.chars().next().unwrap());
         let col_result: u64 = table_strings
             .iter()
-            .map(|x| x.parse().unwrap())
+            .map(|x| x.parse::<u64>().unwrap())
             .fold(init, calc_func);
         debug!("Part 1 Col {i} with Op '{operation}' = {col_result} ");
         col_results_p1.push(col_result);
@@ -46,10 +37,48 @@ fn main() {
 
     // start part 2
     let mut num_vecs = read_chars(input_path).unwrap();
-    let op_vec = num_vecs.pop().unwrap();
-    let vert_nums = transpose(num_vecs).unwrap();
-    debug!("\n{vert_nums:?}");
+    let op_vec = num_vecs
+        .pop()
+        .unwrap()
+        .iter()
+        .filter(|x| **x != ' ')
+        .map(|c| get_calc_func(*c))
+        .collect_vec();
+    let mut op_iter = op_vec.iter().rev();
+    let vert_nums = parse_chars(transpose(num_vecs).unwrap());
+    // debug!("\n{vert_nums:?}");
+    let build_nums = vert_nums
+        .iter()
+        .rev()
+        .map(|x| {
+            if x.len() == 0 {
+                None
+            } else {
+                Some(x.iter().fold(0, |acc: u64, y| acc * 10 + (*y as u64)))
+            }
+        })
+        .collect_vec();
+    debug!("{build_nums:?}");
+    let subsequences = build_nums
+        .split(|x| *x == None)
+        .map(|x| x.iter().map(|x| x.unwrap() as u64).to_owned().collect_vec())
+        .collect_vec();
+    let col_results_p2 = subsequences
+        .iter()
+        .map(|x| {
+            let (init, func) = op_iter.next().unwrap();
+            x.iter().copied().fold(*init, func)
+        })
+        .collect_vec();
+    debug!("{col_results_p2:?}");
+    let sum = col_results_p2.iter().sum::<u64>();
+    info!("Part 1: Sum of all column results: {sum}");
+}
 
-    // let sum = col_results_p2.iter().sum::<u64>();
-    // info!("Part 1: Sum of all column results: {sum}");
+pub fn get_calc_func(c: char) -> (u64, Box<dyn Fn(u64, u64) -> u64>) {
+    match c {
+        '*' => (1, Box::new(|x: u64, y: u64| x * y)),
+        '+' => (0, Box::new(|x: u64, y: u64| x + y)),
+        _ => panic!("Unknown operation in calculation"),
+    }
 }
