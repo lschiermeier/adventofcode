@@ -15,7 +15,7 @@ fn main() {
 
     let input_path = gen_input_path(src_name, test_mode);
     let lines = read_ascii(input_path).expect("File could not be opened.");
-    let starting_map = Map2D::<Tile>::from(lines);
+    let starting_map = Map2D::<Tile>::new_from(lines);
     debug!("Starting_map:\n{starting_map}");
     let (mut movable_map, p1_movable_count) = calc_movable(starting_map);
     debug!("Map after iteration 1\n{movable_map}");
@@ -38,7 +38,7 @@ fn main() {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
-pub enum Tile {
+enum Tile {
     Empty,
     Roll(bool),
 }
@@ -70,7 +70,7 @@ impl std::fmt::Display for Tile {
     }
 }
 
-pub fn calc_movable(starting_map: Map2D<Tile>) -> (Map2D<Tile>, usize) {
+fn calc_movable(starting_map: Map2D<Tile>) -> (Map2D<Tile>, usize) {
     let mut movable_map = starting_map.clone();
     let mut count_map = Map2D::<u8>::from_elem_with_bound(starting_map.outer_bound, 0);
     for (tile, point) in starting_map.iter_elem() {
