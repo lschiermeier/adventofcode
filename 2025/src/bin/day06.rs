@@ -1,8 +1,7 @@
-use core::num;
-use std::{iter, ops, thread::yield_now, vec};
+use std::vec;
 
 use aoc_2025::*;
-use itertools::{Itertools, WhileSome, Zip, rev};
+use itertools::Itertools;
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
