@@ -233,13 +233,13 @@ impl Direction {
     pub fn as_offset(self: &Direction) -> Point {
         match self {
             North => Point { x: 0, y: -1 },
-            Northwest => Point { x: 1, y: -1 },
-            West => Point { x: 1, y: 0 },
-            Southwest => Point { x: 1, y: 1 },
+            Northwest => Point { x: -1, y: -1 },
+            West => Point { x: -1, y: 0 },
+            Southwest => Point { x: -1, y: 1 },
             South => Point { x: 0, y: 1 },
-            Southeast => Point { x: -1, y: 1 },
-            East => Point { x: -1, y: 0 },
-            Northeast => Point { x: -1, y: -1 },
+            Southeast => Point { x: 1, y: 1 },
+            East => Point { x: 1, y: 0 },
+            Northeast => Point { x: 1, y: -1 },
         }
     }
 
@@ -270,17 +270,17 @@ impl<T> Map2D<T>
 where
     T: Copy,
 {
-    pub fn new(block: Vec<Vec<T>>) -> Self {
-        Map2D {
+    pub fn new(block: Vec<Vec<T>>) -> Option<Self> {
+        Some(Map2D {
             outer_bound: Point {
-                x: block.get(0).expect("Empty Sub Vec given to Map2D.").len() as i64,
+                x: block.get(0)?.len() as i64,
                 y: block.len() as i64,
             },
             block: block,
-        }
+        })
     }
 
-    pub fn from<F>(elems: Vec<Vec<F>>) -> Self
+    pub fn new_from<F>(elems: Vec<Vec<F>>) -> Option<Self>
     where
         F: Into<T>,
     {
@@ -291,7 +291,7 @@ where
         Map2D::new(block)
     }
 
-    pub fn from_elem_with_bound(outer_bound: Point, elem: T) -> Self {
+    pub fn from_elem_with_bound(outer_bound: Point, elem: T) -> Option<Self> {
         let mut block: Vec<Vec<T>> = vec![];
         for _ in 0..outer_bound.y {
             let mut row: Vec<T> = vec![];
@@ -320,7 +320,11 @@ where
         }
     }
 
-    pub fn iter_elem(&self) -> impl Iterator<Item = (T, Point)> + '_ {
+    pub fn iter_row(&self) -> impl Iterator<Item = &Vec<T>> {
+        self.block.iter()
+    }
+
+    pub fn iter_elem(&self) -> impl Iterator<Item = (T, Point)>{
         self.block.iter().enumerate().flat_map(|(y, row)| {
             row.iter().enumerate().map(move |(x, &val)| {
                 (
@@ -333,6 +337,23 @@ where
             })
         })
     }
+
+    pub fn add_row(&mut self, row: Vec<T>) -> Result<(), String> {
+        if row.len() != self.outer_bound.x as usize {
+            Err("Tryed adding unfitting row.".to_owned())
+        } else {
+            self.block.push(row);
+            Ok(())
+        }
+    }
+
+    pub fn get_row(&self, index: usize) -> Option<&Vec<T>> {
+        if index >= self.block.len() {
+            None
+        } else {
+            Some(&self.block[index])
+        }
+    }
 }
 
 impl<T> std::fmt::Display for Map2D<T>
@@ -341,11 +362,12 @@ where
     T: Copy,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.block.iter().for_each(|y| {
-            y.iter()
-                .for_each(|x| write!(f, "{}", x).expect("Failed to write Map2D"));
-            write!(f, "\n").unwrap();
-        });
+        for y in self.block.iter() {
+            for x in y.iter() {
+                write!(f, "{}", x)?
+            }
+            write!(f, "\n")?;
+        }
         Ok(())
     }
 }
@@ -392,4 +414,8 @@ pub fn test_transpose() {
         transpose(wrong_table),
         "Transpose didn't produce None."
     );
+}
+
+pub fn eq_to<T: std::cmp::PartialEq + 'static>(x: T) -> impl Fn(&T) -> bool {
+    move |y| y == &x
 }
