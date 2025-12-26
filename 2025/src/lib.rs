@@ -186,23 +186,23 @@ fn test_parse_table() {
 }
 
 #[derive(Debug, Copy, Clone)]
-pub struct Point {
+pub struct Point2d {
     pub x: i64,
     pub y: i64,
 }
 
-impl ops::Add<Point> for Point {
-    type Output = Point;
-    fn add(self, _rhs: Point) -> Point {
-        Point {
+impl ops::Add<Point2d> for Point2d {
+    type Output = Point2d;
+    fn add(self, _rhs: Point2d) -> Point2d {
+        Point2d {
             x: self.x + _rhs.x,
             y: self.y + _rhs.y,
         }
     }
 }
 
-impl Point {
-    pub fn is_in_bounds(self, outer_bound: Point) -> bool {
+impl Point2d {
+    pub fn is_in_bounds(self, outer_bound: Point2d) -> bool {
         match (self.x, self.y) {
             (..=-1, _) => false,
             (_, ..=-1) => false,
@@ -230,16 +230,16 @@ impl Direction {
         ];
         DIRECTIONS.iter()
     }
-    pub fn as_offset(self: &Direction) -> Point {
+    pub fn as_offset(self: &Direction) -> Point2d {
         match self {
-            North => Point { x: 0, y: -1 },
-            Northwest => Point { x: -1, y: -1 },
-            West => Point { x: -1, y: 0 },
-            Southwest => Point { x: -1, y: 1 },
-            South => Point { x: 0, y: 1 },
-            Southeast => Point { x: 1, y: 1 },
-            East => Point { x: 1, y: 0 },
-            Northeast => Point { x: 1, y: -1 },
+            North => Point2d { x: 0, y: -1 },
+            Northwest => Point2d { x: -1, y: -1 },
+            West => Point2d { x: -1, y: 0 },
+            Southwest => Point2d { x: -1, y: 1 },
+            South => Point2d { x: 0, y: 1 },
+            Southeast => Point2d { x: 1, y: 1 },
+            East => Point2d { x: 1, y: 0 },
+            Northeast => Point2d { x: 1, y: -1 },
         }
     }
 
@@ -263,7 +263,7 @@ where
     T: Copy,
 {
     block: Vec<Vec<T>>,
-    pub outer_bound: Point,
+    pub outer_bound: Point2d,
 }
 
 impl<T> Map2D<T>
@@ -272,7 +272,7 @@ where
 {
     pub fn new(block: Vec<Vec<T>>) -> Option<Self> {
         Some(Map2D {
-            outer_bound: Point {
+            outer_bound: Point2d {
                 x: block.get(0)?.len() as i64,
                 y: block.len() as i64,
             },
@@ -291,7 +291,7 @@ where
         Map2D::new(block)
     }
 
-    pub fn from_elem_with_bound(outer_bound: Point, elem: T) -> Option<Self> {
+    pub fn from_elem_with_bound(outer_bound: Point2d, elem: T) -> Option<Self> {
         let mut block: Vec<Vec<T>> = vec![];
         for _ in 0..outer_bound.y {
             let mut row: Vec<T> = vec![];
@@ -303,7 +303,7 @@ where
         Map2D::new(block)
     }
 
-    pub fn get(&self, point: Point) -> Option<T> {
+    pub fn get(&self, point: Point2d) -> Option<T> {
         if point.is_in_bounds(self.outer_bound) {
             Some(self.block[point.y as usize][point.x as usize])
         } else {
@@ -311,7 +311,7 @@ where
         }
     }
 
-    pub fn set(&mut self, point: Point, value: T) -> Result<(), String> {
+    pub fn set(&mut self, point: Point2d, value: T) -> Result<(), String> {
         if point.is_in_bounds(self.outer_bound) {
             self.block[point.y as usize][point.x as usize] = value;
             Ok(())
@@ -324,12 +324,12 @@ where
         self.block.iter()
     }
 
-    pub fn iter_elem(&self) -> impl Iterator<Item = (T, Point)>{
+    pub fn iter_elem(&self) -> impl Iterator<Item = (T, Point2d)> {
         self.block.iter().enumerate().flat_map(|(y, row)| {
             row.iter().enumerate().map(move |(x, &val)| {
                 (
                     val,
-                    Point {
+                    Point2d {
                         x: x as i64,
                         y: y as i64,
                     },
@@ -418,4 +418,62 @@ pub fn test_transpose() {
 
 pub fn eq_to<T: std::cmp::PartialEq + 'static>(x: T) -> impl Fn(&T) -> bool {
     move |y| y == &x
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct Point3d {
+    pub x: i64,
+    pub y: i64,
+    pub z: i64,
+}
+
+impl TryFrom<&Vec<i64>> for Point3d {
+    type Error = String;
+    fn try_from(value: &Vec<i64>) -> Result<Self, Self::Error> {
+        if value.len() == 3 {
+            if let Some((x, y, z)) = value.iter().next_tuple() {
+                Ok(Point3d {
+                    x: *x,
+                    y: *y,
+                    z: *z,
+                })
+            } else {
+                Err("Point could not be built.".to_owned())
+            }
+        } else {
+            Err("Vec of wrong length.".to_owned())
+        }
+    }
+}
+
+impl ops::Add<Point3d> for Point3d {
+    type Output = Point3d;
+    fn add(self, _rhs: Point3d) -> Point3d {
+        Point3d {
+            x: self.x + _rhs.x,
+            y: self.y + _rhs.y,
+            z: self.z + _rhs.z,
+        }
+    }
+}
+
+/// Calculate Square Distance
+impl ops::BitXor<Point3d> for Point3d {
+    type Output = i64;
+    fn bitxor(self, rhs: Point3d) -> Self::Output {
+        (self.x - rhs.x) * (self.x - rhs.x)
+            + (self.y - rhs.y) * (self.y - rhs.y)
+            + (self.z - rhs.z) * (self.z - rhs.z)
+    }
+}
+
+impl Point3d {
+    pub fn is_in_bounds(self, outer_bound: Point3d) -> bool {
+        match (self.x, self.y, self.z) {
+            (..=-1, _, _) => false,
+            (_, ..=-1, _) => false,
+            (_, _, ..=-1) => false,
+            (x, y, z) => x < outer_bound.x && y < outer_bound.y && z < outer_bound.z,
+        }
+    }
 }
