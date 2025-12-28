@@ -1,7 +1,7 @@
 use std::{
     cmp::max,
     cmp::min,
-    collections::{HashMap, HashSet},
+    collections::{HashSet},
 };
 
 use aoc_2025::*;
