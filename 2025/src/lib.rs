@@ -420,7 +420,7 @@ pub fn eq_to<T: std::cmp::PartialEq + 'static>(x: T) -> impl Fn(&T) -> bool {
     move |y| y == &x
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Point3d {
     pub x: i64,
     pub y: i64,
@@ -475,5 +475,33 @@ impl Point3d {
             (_, _, ..=-1) => false,
             (x, y, z) => x < outer_bound.x && y < outer_bound.y && z < outer_bound.z,
         }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Edge<T>
+where
+    T: ops::BitXor<Output = i64> + ops::Add<Output = T> + Clone + Eq + PartialEq,
+{
+    pub before: T,
+    pub after: T,
+
+    pub square_dist: i64,
+}
+
+impl<T> Edge<T>
+where
+    T: ops::BitXor<Output = i64> + ops::Add<Output = T> + Clone + Copy + Eq + PartialEq,
+{
+    pub fn new(before: T, after: T) -> Self {
+        Edge {
+            before,
+            after,
+            square_dist: before ^ after,
+        }
+    }
+
+    pub fn contains(self, point: T) -> bool {
+        self.before == point || self.after == point
     }
 }
