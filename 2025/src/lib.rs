@@ -2,6 +2,7 @@ use core::{fmt, panic};
 use itertools::Itertools;
 use log::warn;
 use regex::{self, Regex};
+use std::cmp::{max, min};
 use std::fmt::Display;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -185,7 +186,7 @@ fn test_parse_table() {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Point2d {
     pub x: i64,
     pub y: i64,
@@ -207,6 +208,99 @@ impl Point2d {
             (..=-1, _) => false,
             (_, ..=-1) => false,
             (x, y) => x < outer_bound.x && y < outer_bound.y,
+        }
+    }
+
+    pub fn calc_area(self, other: Point2d) -> u64 {
+        (self.x.abs_diff(other.x) + 1) * (self.y.abs_diff(other.y) + 1)
+    }
+
+    pub fn gen_between(self, other: Point2d) -> Vec<Point2d> {
+        if self == other {
+            vec![]
+        } else if self.x == other.x {
+            // Vertical line
+            let max_y = max(self.y, other.y) - 1;
+            let mut min_y = min(self.y, other.y) + 1;
+            if !(max_y > min_y) {
+                vec![]
+            } else {
+                let mut out_vec = vec![];
+                while min_y <= max_y {
+                    out_vec.push(Point2d {
+                        x: self.x,
+                        y: min_y,
+                    });
+                    min_y += 1;
+                }
+                out_vec
+            }
+        } else if self.y == other.y {
+            // Horizontal line
+            let max_x = max(self.x, other.x) - 1;
+            let mut min_x = min(self.x, other.x) + 1;
+            if !(max_x > min_x) {
+                vec![]
+            } else {
+                let mut out_vec = vec![];
+                while min_x <= max_x {
+                    out_vec.push(Point2d {
+                        x: min_x,
+                        y: self.y,
+                    });
+                    min_x += 1;
+                }
+                out_vec
+            }
+        } else {
+            panic!("Diagonal set_between not supported.");
+        }
+    }
+
+    // Between cardinal directions all are joined in one combination
+    pub fn direction_to(self, other: Point2d) -> Option<Direction> {
+        match (self.x, self.y, other.x, other.y) {
+            (from_x, from_y, other_x, other_y) if from_x == other_x && from_y == other_y => None,
+            (from_x, from_y, other_x, other_y) if from_x == other_x && from_y > other_y => {
+                Some(North)
+            }
+            (from_x, from_y, other_x, other_y) if from_x == other_x && from_y < other_y => {
+                Some(South)
+            }
+            (from_x, from_y, other_x, other_y) if from_x > other_x && from_y == other_y => {
+                Some(West)
+            }
+            (from_x, from_y, other_x, other_y) if from_x < other_x && from_y == other_y => {
+                Some(East)
+            }
+            (from_x, from_y, other_x, other_y) if from_x > other_x && from_y > other_y => {
+                Some(Northwest)
+            }
+            (from_x, from_y, other_x, other_y) if from_x < other_x && from_y < other_y => {
+                Some(Southeast)
+            }
+            (from_x, from_y, other_x, other_y) if from_x > other_x && from_y < other_y => {
+                Some(Southwest)
+            }
+            (from_x, from_y, other_x, other_y) if from_x < other_x && from_y > other_y => {
+                Some(Northeast)
+            }
+            _ => panic!("No unmatched directions should exist."),
+        }
+    }
+}
+
+impl TryFrom<&Vec<i64>> for Point2d {
+    type Error = String;
+    fn try_from(value: &Vec<i64>) -> Result<Self, Self::Error> {
+        if value.len() == 2 {
+            if let Some((x, y)) = value.iter().next_tuple() {
+                Ok(Point2d { x: *x, y: *y })
+            } else {
+                Err("Point could not be built.".to_owned())
+            }
+        } else {
+            Err("Vec of wrong length.".to_owned())
         }
     }
 }
@@ -253,6 +347,20 @@ impl Direction {
             Southeast => Northwest,
             East => West,
             Northeast => Southwest,
+        }
+    }
+
+    pub fn get_between(self: &Direction, other: Direction) -> Option<Direction> {
+        match (self, other) {
+            (West, North) | (North, West) => Some(Northwest),
+            (East, North) | (North, East) => Some(Northeast),
+            (East, South) | (South, East) => Some(Southeast),
+            (West, South) | (South, West) => Some(Southwest),
+            (Northwest, Southwest) | (Southwest, Northwest) => Some(West),
+            (Northeast, Southeast) | (Southeast, Northeast) => Some(East),
+            (Southwest, Southeast) | (Southeast, Southwest) => Some(South),
+            (Northwest, Northeast) | (Northeast, Northwest) => Some(North),
+            _ => None,
         }
     }
 }
@@ -317,6 +425,57 @@ where
             Ok(())
         } else {
             Err("Point out of bounds".into())
+        }
+    }
+
+    pub fn set_between(
+        &mut self,
+        point_a: Point2d,
+        point_b: Point2d,
+        value: T,
+    ) -> Result<(), String> {
+        if point_a == point_b {
+            Err(String::from("Same Point, no room between"))
+        } else if point_a.x == point_b.x {
+            // Vertical line
+            let max_y = max(point_a.y, point_b.y) - 1;
+            let mut min_y = min(point_a.y, point_b.y) + 1;
+            if !(max_y > min_y) {
+                return Err(String::from("Too close, no room between"));
+            }
+            while min_y <= max_y {
+                self.set(
+                    Point2d {
+                        x: point_a.x,
+                        y: min_y,
+                    },
+                    value,
+                )
+                .unwrap_or(());
+                min_y += 1;
+            }
+            return Ok(());
+        } else if point_a.y == point_b.y {
+            // Horizontal line
+            let max_x = max(point_a.x, point_b.x) - 1;
+            let mut min_x = min(point_a.x, point_b.x) + 1;
+            if !(max_x > min_x) {
+                return Err(String::from("Too close, no room between"));
+            }
+            while min_x <= max_x {
+                self.set(
+                    Point2d {
+                        x: min_x,
+                        y: point_a.y,
+                    },
+                    value,
+                )
+                .unwrap_or(());
+                min_x += 1;
+            }
+            return Ok(());
+        } else {
+            panic!("Diagonal set_between not supported.");
         }
     }
 
@@ -481,7 +640,7 @@ impl Point3d {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Edge<T>
 where
-    T: ops::BitXor<Output = i64> + ops::Add<Output = T> + Clone + Eq + PartialEq,
+    T: ops::BitXor<Output = i64> + ops::Add<Output = T> + Clone + Copy + Eq + PartialEq,
 {
     pub before: T,
     pub after: T,
