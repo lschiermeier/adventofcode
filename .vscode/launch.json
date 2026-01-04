@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Launch and Build Rust",
             "program": "${workspaceFolder}/${relativeFileDirname}/../../target/debug/${fileBasenameNoExtension}",
-            "args": ["test"],
+            // "args": ["test"],
             "cwd": "${workspaceFolder}/${relativeFileDirname}/../..",
             "preLaunchTask": "cargo: build",
             "cargo": {
@@ -22,7 +22,7 @@
                 },
                 "cwd": "${workspaceFolder}/${relativeFileDirname}"
             },
-            "env": {"RUST_LOG":"Debug"}
+            "env": {"RUST_LOG":"trace"}
         }
 
     ]
