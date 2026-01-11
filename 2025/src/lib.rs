@@ -640,25 +640,40 @@ impl Point3d {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Edge<T>
 where
-    T: ops::BitXor<Output = i64> + ops::Add<Output = T> + Clone + Copy + Eq + PartialEq,
+    T: Clone + Eq + PartialEq,
 {
     pub before: T,
     pub after: T,
 
-    pub square_dist: i64,
+    pub square_dist: Option<i64>
+}
+
+impl<T> Edge<T>
+where
+    T: Clone + Eq + PartialEq,
+{
+    pub fn new(before: T, after: T) -> Self {
+        Edge {
+            before,
+            after,
+            square_dist: None,
+        }
+    }
 }
 
 impl<T> Edge<T>
 where
     T: ops::BitXor<Output = i64> + ops::Add<Output = T> + Clone + Copy + Eq + PartialEq,
 {
-    pub fn new(before: T, after: T) -> Self {
+    pub fn new_dist(before: T, after: T) -> Self {
         Edge {
             before,
             after,
-            square_dist: before ^ after,
+            square_dist: Some(before ^ after),
         }
     }
+
+
 
     pub fn contains(self, point: T) -> bool {
         self.before == point || self.after == point

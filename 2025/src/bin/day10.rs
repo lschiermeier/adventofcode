@@ -1,10 +1,4 @@
-use core::num;
-use std::{
-    cmp::min,
-    collections::{BTreeMap, BTreeSet, BinaryHeap, HashSet},
-    i64::MAX,
-    ops::Not,
-};
+use std::{collections::BTreeMap, ops::Not};
 
 use aoc_2025::*;
 use itertools::Itertools;
@@ -71,6 +65,8 @@ fn main() {
             vec![0; machine.joltage_requirements.len()],
             &machine.joltage_requirements,
             &machine.buttons,
+            None,
+            0,
         );
         debug!(
             "found joltage cycle count {} for {:?}",
@@ -120,6 +116,8 @@ impl Machine {
                     .collect_vec(),
             )
         }
+        buttons.sort_by_key(|x| 10 - x.len());
+
         let joltage_requirements = string_iter
             .next()?
             .split(&[',', '{', '}'])
@@ -173,12 +171,26 @@ pub fn depth_search(
     input_joltages: Joltages,
     target_joltages: &Joltages,
     buttons: &Buttons,
+    current_best: Option<i64>,
+    current_depth: i64,
 ) -> Option<i64> {
-    let mut current_best = None;
+    if let Some(best) = current_best {
+        if best <= current_depth {
+            trace!(
+                "Stopping depth search as better was found. At Depth {}",
+                current_depth
+            );
+            return None;
+        }
+    }
+    let mut maybe_best = current_best;
     for button in buttons {
         let new_joltages = press_button_for_joltages(&input_joltages, &button);
         if new_joltages == *target_joltages {
-            current_best = Some(1);
+            maybe_best = Some(1);
+            trace!(
+                "found {target_joltages:?}, current_depth {current_depth}, best_depth: {current_best:?}"
+            );
         } else if target_joltages
             .iter()
             .zip_eq(&new_joltages)
@@ -187,10 +199,18 @@ pub fn depth_search(
         {
             continue;
         } else {
-            trace!("searching deeper for {target_joltages:?} from {new_joltages:?}");
-            current_best = match (
-                current_best,
-                depth_search(new_joltages, target_joltages, buttons),
+            trace!(
+                "searching deeper for {target_joltages:?} from {new_joltages:?}, current_depth {current_depth}, best_depth: {current_best:?}"
+            );
+            maybe_best = match (
+                maybe_best,
+                depth_search(
+                    new_joltages,
+                    target_joltages,
+                    buttons,
+                    maybe_best,
+                    current_depth + 1,
+                ),
             ) {
                 (None, None) => None,
                 (Some(cur), None) => Some(cur),
@@ -200,5 +220,9 @@ pub fn depth_search(
             };
         }
     }
-    current_best
+    match (maybe_best, current_best) {
+        (Some(maybe), Some(current)) if maybe < current => maybe_best,
+        (_, None) => maybe_best,
+        (_, _) => None,
+    }
 }

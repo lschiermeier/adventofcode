@@ -33,12 +33,12 @@ fn main() {
                 .iter()
                 .copied()
                 // calc square distance
-                .map(move |x| Edge::new(x, y))
+                .map(move |x| Edge::new_dist(x, y))
         })
         .flatten()
-        .filter(|x| x.square_dist != 0)
-        .sorted_by_key(|x| x.square_dist)
-        .dedup_by(|x, y| x.square_dist == y.square_dist)
+        .filter(|x| x.square_dist.unwrap() != 0)
+        .sorted_by_key(|x| x.square_dist.unwrap())
+        .dedup_by(|x, y| x.square_dist.unwrap() == y.square_dist.unwrap())
         .collect();
     let connection_target_count = if test_mode { 10 } else { 1000 };
     let mut connections_made = 0;
